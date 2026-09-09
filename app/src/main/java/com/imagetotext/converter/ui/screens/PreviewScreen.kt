@@ -275,14 +275,14 @@ fun PreviewScreen(
                     Text("Brightness", style = MaterialTheme.typography.bodyMedium)
                     Slider(
                         value = viewModel.brightness,
-                        onValueChange = { viewModel.setBrightness(it) },
+                        onValueChange = { viewModel.updateBrightness(it) },
                         valueRange = -100f..100f
                     )
 
                     Text("Contrast", style = MaterialTheme.typography.bodyMedium)
                     Slider(
                         value = viewModel.contrast,
-                        onValueChange = { viewModel.setContrast(it) },
+                        onValueChange = { viewModel.updateContrast(it) },
                         valueRange = 0.5f..2f
                     )
 

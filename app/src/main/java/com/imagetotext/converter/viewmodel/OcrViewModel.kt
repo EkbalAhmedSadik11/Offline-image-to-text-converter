@@ -127,12 +127,12 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
         recomputeEditedBitmap()
     }
 
-    fun setBrightness(value: Float) {
+    fun updateBrightness(value: Float) {
         brightness = value
         recomputeEditedBitmap()
     }
 
-    fun setContrast(value: Float) {
+    fun updateContrast(value: Float) {
         contrast = value
         recomputeEditedBitmap()
     }
