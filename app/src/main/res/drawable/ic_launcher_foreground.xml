@@ -4,23 +4,47 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Simple photo frame with a text line, representing "image to text" -->
+    <!--
+        Redrawn as a scalable vector (a scan-frame with corner brackets
+        around a bold "T"), matching the reference icon the user supplied.
+        Vector, not a bundled PNG, so it stays crisp at every launcher size
+        with near-zero APK size cost.
+    -->
+
+    <!-- Bold "T" letterform -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M29,32 h50 a6,6 0 0 1 6,6 v32 a6,6 0 0 1 -6,6 h-50 a6,6 0 0 1 -6,-6 v-32 a6,6 0 0 1 6,-6 z"
-        android:fillAlpha="0.0"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="4" />
+        android:fillColor="#1B1B1B"
+        android:pathData="M36,38 h36 v10 h-13 v32 h-10 v-32 h-13 z" />
+
+    <!-- Horizontal scan line crossing the T -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M35,58 l10,-12 l8,9 l7,-8 l13,15 z" />
+        android:fillColor="#5B9BF5"
+        android:fillAlpha="0.75"
+        android:pathData="M28,58 h52 v6 h-52 z" />
+
+    <!-- Four corner scan brackets -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M42,40 m-5,0 a5,5 0 1 0 10,0 a5,5 0 1 0 -10,0" />
+        android:fillColor="#2F6FED"
+        android:strokeColor="#2F6FED"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:pathData="M25,38 v-9 a4,4 0 0 1 4,-4 h9" />
     <path
-        android:fillColor="#FFD166"
-        android:pathData="M27,82 h54 v6 h-54 z" />
+        android:fillColor="#2F6FED"
+        android:strokeColor="#2F6FED"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:pathData="M70,25 h9 a4,4 0 0 1 4,4 v9" />
     <path
-        android:fillColor="#FFD166"
-        android:pathData="M27,92 h36 v6 h-36 z" />
+        android:fillColor="#2F6FED"
+        android:strokeColor="#2F6FED"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:pathData="M83,70 v9 a4,4 0 0 1 -4,4 h-9" />
+    <path
+        android:fillColor="#2F6FED"
+        android:strokeColor="#2F6FED"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:pathData="M38,83 h-9 a4,4 0 0 1 -4,-4 v-9" />
 </vector>

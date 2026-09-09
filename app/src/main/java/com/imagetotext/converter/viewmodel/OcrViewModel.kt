@@ -35,6 +35,13 @@ sealed class OcrState {
 
 class OcrViewModel(application: Application) : AndroidViewModel(application) {
 
+    private companion object {
+        // Applied automatically to every image before OCR - not user-adjustable.
+        // A mild, fixed contrast boost plus grayscale conversion consistently
+        // helps Tesseract by removing color noise and mild lighting unevenness.
+        const val AUTO_CONTRAST = 1.2f
+    }
+
     private val tesseractHelper = TesseractHelper(application)
     private val historyRepository = HistoryRepository(application)
     private val themePreferences = ThemePreferences(application)
@@ -46,12 +53,6 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     var editedBitmap by mutableStateOf<Bitmap?>(null)
         private set
 
-    var isGrayscale by mutableStateOf(false)
-        private set
-    var brightness by mutableStateOf(0f)
-        private set
-    var contrast by mutableStateOf(1f)
-        private set
     var rotationDegrees by mutableStateOf(0f)
         private set
 
@@ -86,26 +87,35 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // ----- Image loading -----
+    // These are suspend functions the caller awaits *before* navigating to
+    // the preview screen. Previously they launched a fire-and-forget
+    // coroutine and the UI navigated immediately, which raced the actual
+    // decode: the preview screen could see a still-null bitmap and bounce
+    // straight back (looking like "nothing happened" / needing a second
+    // attempt), or a later "Extract Text" could run on the *previous*
+    // image because the new one hadn't finished loading yet.
 
-    fun loadImageFromGallery(uri: Uri) {
+    suspend fun loadImageFromGallery(uri: Uri): Boolean =
         loadImageInternal { ImageUtils.loadBitmapFromUri(getApplication(), uri) }
-    }
 
-    fun loadImageFromCameraFile(filePath: String) {
+    suspend fun loadImageFromCameraFile(filePath: String): Boolean =
         loadImageInternal { ImageUtils.loadBitmapFromFile(filePath) }
-    }
 
-    private fun loadImageInternal(decode: () -> Bitmap) {
-        viewModelScope.launch {
-            imageError = null
-            try {
-                val bitmap = withContext(Dispatchers.IO) { decode() }
-                originalBitmap = bitmap
-                resetEdits()
-                ocrState = OcrState.Idle
-            } catch (e: Exception) {
-                imageError = "Please select a supported image format."
-            }
+    private suspend fun loadImageInternal(decode: () -> Bitmap): Boolean {
+        imageError = null
+        return try {
+            val bitmap = withContext(Dispatchers.IO) { decode() }
+            originalBitmap = bitmap
+            resetEdits()
+            ocrState = OcrState.Idle
+            // A fresh image means any previous result no longer applies to
+            // what's on screen.
+            extractedText = ""
+            lastDetectedLanguages = emptyList()
+            true
+        } catch (e: Exception) {
+            imageError = "Please select a supported image format."
+            false
         }
     }
 
@@ -120,22 +130,9 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     // ----- Preprocessing -----
     // originalBitmap is never modified in place; every adjustment is
     // recomputed from it so repeated edits never compound image quality
-    // loss and Reset always returns to a clean image.
-
-    fun toggleGrayscale() {
-        isGrayscale = !isGrayscale
-        recomputeEditedBitmap()
-    }
-
-    fun updateBrightness(value: Float) {
-        brightness = value
-        recomputeEditedBitmap()
-    }
-
-    fun updateContrast(value: Float) {
-        contrast = value
-        recomputeEditedBitmap()
-    }
+    // loss and Reset always returns to a clean image. Grayscale + a mild
+    // automatic contrast boost are always applied (see recomputeEditedBitmap) -
+    // the only thing left for the user to adjust is rotation and cropping.
 
     fun rotateLeft() {
         rotationDegrees = (rotationDegrees - 90f).mod(360f)
@@ -148,9 +145,6 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun resetEdits() {
-        isGrayscale = false
-        brightness = 0f
-        contrast = 1f
         rotationDegrees = 0f
         recomputeEditedBitmap()
     }
@@ -169,7 +163,12 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
             editedBitmap = null
             return
         }
-        val adjusted = ImageUtils.applyAdjustments(source, isGrayscale, brightness, contrast)
+        val adjusted = ImageUtils.applyAdjustments(
+            source,
+            grayscale = true,
+            brightness = 0f,
+            contrast = AUTO_CONTRAST
+        )
         editedBitmap = if (rotationDegrees != 0f) {
             ImageUtils.rotateBitmap(adjusted, rotationDegrees)
         } else {
@@ -196,7 +195,10 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
                     ocrState = OcrState.Recognizing(percent)
                 }
                 if (text.isBlank()) {
-                    ocrState = OcrState.Error("No readable text was detected in this image.")
+                    ocrState = OcrState.Error(
+                        "No readable text was detected in this image. Only printed or " +
+                            "typed text is supported - handwriting cannot be recognized."
+                    )
                     return@launch
                 }
                 val detection = LanguageDetector.detect(text)

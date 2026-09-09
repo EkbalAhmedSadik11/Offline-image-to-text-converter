@@ -42,6 +42,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +54,7 @@ import androidx.core.content.ContextCompat
 import com.imagetotext.converter.data.history.HistoryEntity
 import com.imagetotext.converter.util.ImageUtils
 import com.imagetotext.converter.viewmodel.OcrViewModel
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.DateFormat
 import java.util.Date
@@ -67,6 +69,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val darkModeOverride by viewModel.isDarkMode.collectAsState()
     val history by viewModel.history.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
 
     var pendingCameraFile by remember { mutableStateOf<File?>(null) }
     var permissionDeniedMessage by remember { mutableStateOf<String?>(null) }
@@ -75,8 +78,14 @@ fun HomeScreen(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         if (uri != null) {
-            viewModel.loadImageFromGallery(uri)
-            onImageReady()
+            // Wait for the image to actually finish loading before
+            // navigating - otherwise the preview screen can appear before
+            // there's a bitmap to show.
+            coroutineScope.launch {
+                if (viewModel.loadImageFromGallery(uri)) {
+                    onImageReady()
+                }
+            }
         }
     }
 
@@ -85,8 +94,11 @@ fun HomeScreen(
     ) { success ->
         val file = pendingCameraFile
         if (success && file != null) {
-            viewModel.loadImageFromCameraFile(file.absolutePath)
-            onImageReady()
+            coroutineScope.launch {
+                if (viewModel.loadImageFromCameraFile(file.absolutePath)) {
+                    onImageReady()
+                }
+            }
         }
     }
 

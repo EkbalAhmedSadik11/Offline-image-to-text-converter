@@ -35,8 +35,15 @@ fun AppNavHost(viewModel: OcrViewModel) {
                 viewModel = viewModel,
                 onChangeImage = { navController.popBackStack() },
                 onTextExtracted = {
+                    // Keep PREVIEW on the back stack (rather than popping up
+                    // to HOME) so the system back button from RESULT
+                    // naturally returns to the still-loaded image instead
+                    // of jumping straight back to image selection. Popping
+                    // up to PREVIEW itself first (non-inclusive) still keeps
+                    // the stack from growing if the user extracts more than
+                    // once in a row.
                     navController.navigate(Routes.RESULT) {
-                        popUpTo(Routes.HOME)
+                        popUpTo(Routes.PREVIEW) { inclusive = false }
                     }
                 }
             )
@@ -55,7 +62,7 @@ fun AppNavHost(viewModel: OcrViewModel) {
                 onBack = { navController.popBackStack() },
                 onOpenResult = {
                     navController.navigate(Routes.RESULT) {
-                        popUpTo(Routes.HOME)
+                        popUpTo(Routes.HISTORY) { inclusive = false }
                     }
                 }
             )

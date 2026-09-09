@@ -36,7 +36,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -246,17 +245,19 @@ fun PreviewScreen(
             Card(shape = RoundedCornerShape(16.dp)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Adjust Image", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "Grayscale and contrast are enhanced automatically for the most " +
+                            "accurate text recognition.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Spacer(Modifier.height(12.dp))
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        FilterChip(
-                            selected = viewModel.isGrayscale,
-                            onClick = { viewModel.toggleGrayscale() },
-                            label = { Text("Grayscale") }
-                        )
                         FilterChip(
                             selected = isCropping,
                             onClick = { isCropping = !isCropping },
@@ -269,28 +270,11 @@ fun PreviewScreen(
                         IconButton(onClick = { viewModel.rotateRight() }) {
                             Icon(Icons.Filled.RotateRight, contentDescription = "Rotate right")
                         }
-                    }
-
-                    Spacer(Modifier.height(8.dp))
-                    Text("Brightness", style = MaterialTheme.typography.bodyMedium)
-                    Slider(
-                        value = viewModel.brightness,
-                        onValueChange = { viewModel.updateBrightness(it) },
-                        valueRange = -100f..100f
-                    )
-
-                    Text("Contrast", style = MaterialTheme.typography.bodyMedium)
-                    Slider(
-                        value = viewModel.contrast,
-                        onValueChange = { viewModel.updateContrast(it) },
-                        valueRange = 0.5f..2f
-                    )
-
-                    Spacer(Modifier.height(4.dp))
-                    TextButton(onClick = { viewModel.resetEdits() }) {
-                        Icon(Icons.Filled.RestartAlt, contentDescription = null)
-                        Spacer(Modifier.width(6.dp))
-                        Text("Reset")
+                        TextButton(onClick = { viewModel.resetEdits() }) {
+                            Icon(Icons.Filled.RestartAlt, contentDescription = null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Reset")
+                        }
                     }
                 }
             }
