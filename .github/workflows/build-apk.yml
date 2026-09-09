@@ -1,0 +1,52 @@
+name: Build Debug APK
+
+# Builds a debug APK entirely on GitHub's free runners - no local Android
+# Studio needed. Download the result from the "Actions" tab of this repo
+# after a run finishes, under that run's "Artifacts" section.
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.7
+
+      - name: Download offline OCR language files
+        # These are the official open-source Tesseract trained-data files.
+        # They are downloaded here (once, at build time) rather than
+        # committed to the repo, since they are large binary files. The
+        # built APK bundles them, so the installed app itself never needs
+        # to download anything.
+        run: |
+          mkdir -p app/src/main/assets/tessdata
+          cd app/src/main/assets/tessdata
+          curl -fL -o eng.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/eng.traineddata
+          curl -fL -o ben.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/ben.traineddata
+          curl -fL -o ara.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/ara.traineddata
+
+      - name: Build debug APK
+        run: gradle assembleDebug --no-daemon
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-to-text-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk

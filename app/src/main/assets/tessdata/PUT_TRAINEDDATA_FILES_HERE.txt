@@ -1,0 +1,27 @@
+This folder must contain exactly these three files before you build the app:
+
+  ben.traineddata
+  eng.traineddata
+  ara.traineddata
+
+They are the offline Bangla, English and Arabic recognition models for the
+Tesseract OCR engine. They are official open-source files published by the
+Tesseract project and are too large (several MB each) to be written out as
+source code, so they are not included in this text-based project export.
+
+Download them (one-time, on your development computer) from the official
+Tesseract "fast" trained-data repository:
+
+  https://github.com/tesseract-ocr/tessdata_fast/raw/main/eng.traineddata
+  https://github.com/tesseract-ocr/tessdata_fast/raw/main/ben.traineddata
+  https://github.com/tesseract-ocr/tessdata_fast/raw/main/ara.traineddata
+
+Save all three files directly into this folder
+(app/src/main/assets/tessdata/), replacing this text file is not required,
+you can just leave it next to them.
+
+See the project README.md, section "Download the OCR language files", for
+step-by-step instructions and a ready-to-run PowerShell command.
+
+Once these files are inside the APK's assets, the app copies them to its
+private storage the first time it runs and never needs the internet again.

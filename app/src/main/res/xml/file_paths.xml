@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Temporary photo taken with the in-app camera -->
+    <cache-path name="camera_images" path="camera/" />
+    <!-- Fallback location used to save extracted-text.txt on Android 9 and below -->
+    <external-files-path name="saved_files" path="." />
+</paths>

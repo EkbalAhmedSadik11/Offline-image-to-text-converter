@@ -1,0 +1,27 @@
+# Gradle
+.gradle/
+build/
+app/build/
+
+# Local configuration (machine-specific SDK path) - never commit this
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Signing keys - never commit these
+*.jks
+*.keystore
+
+# Offline OCR language files: large official binaries, fetched separately.
+# See README.md "Download the OCR language files" and the GitHub Actions
+# workflow, both of which download them automatically instead.
+app/src/main/assets/tessdata/*.traineddata

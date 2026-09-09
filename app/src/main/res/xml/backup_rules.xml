@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   All app data (OCR history, theme preference) is 100% local to this
+   device. Allowing Android's normal backup mechanism to include it is
+   safe because it never leaves the user's own Google account backup and
+   the app never talks to any server of its own.
+-->
+<full-backup-content>
+</full-backup-content>
