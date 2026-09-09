@@ -1,6 +1,7 @@
 package com.imagetotext.converter.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -93,16 +94,18 @@ fun ResultScreen(
                 Spacer(Modifier.height(10.dp))
             }
 
-            CompositionLocalProvider(
-                LocalLayoutDirection provides if (viewModel.isArabicDominant) LayoutDirection.Rtl else LayoutDirection.Ltr
-            ) {
-                OutlinedTextField(
-                    value = viewModel.extractedText,
-                    onValueChange = { viewModel.updateExtractedText(it) },
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    label = { Text("Extracted Text") },
-                    placeholder = { Text("No text yet") }
-                )
+            Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                CompositionLocalProvider(
+                    LocalLayoutDirection provides if (viewModel.isArabicDominant) LayoutDirection.Rtl else LayoutDirection.Ltr
+                ) {
+                    OutlinedTextField(
+                        value = viewModel.extractedText,
+                        onValueChange = { viewModel.updateExtractedText(it) },
+                        modifier = Modifier.fillMaxSize(),
+                        label = { Text("Extracted Text") },
+                        placeholder = { Text("No text yet") }
+                    )
+                }
             }
 
             Spacer(Modifier.height(8.dp))
