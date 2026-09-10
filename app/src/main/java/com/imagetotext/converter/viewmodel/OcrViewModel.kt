@@ -2,7 +2,6 @@ package com.imagetotext.converter.viewmodel
 
 import android.app.Application
 import android.graphics.Bitmap
-import android.graphics.Rect
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -132,7 +131,7 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     // recomputed from it so repeated edits never compound image quality
     // loss and Reset always returns to a clean image. Grayscale + a mild
     // automatic contrast boost are always applied (see recomputeEditedBitmap) -
-    // the only thing left for the user to adjust is rotation and cropping.
+    // the only thing left for the user to adjust is rotation.
 
     fun rotateLeft() {
         rotationDegrees = (rotationDegrees - 90f).mod(360f)
@@ -147,14 +146,6 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     fun resetEdits() {
         rotationDegrees = 0f
         recomputeEditedBitmap()
-    }
-
-    /** [rect] must already be in the source bitmap's own pixel coordinates. */
-    fun applyCrop(rect: Rect) {
-        val source = editedBitmap ?: return
-        val cropped = ImageUtils.cropBitmap(source, rect)
-        originalBitmap = cropped
-        resetEdits()
     }
 
     private fun recomputeEditedBitmap() {

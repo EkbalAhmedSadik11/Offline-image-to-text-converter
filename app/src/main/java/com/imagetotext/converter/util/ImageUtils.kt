@@ -8,7 +8,6 @@ import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Matrix
 import android.graphics.Paint
-import android.graphics.Rect
 import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
@@ -20,11 +19,12 @@ import java.io.File
  * Large photos from a modern phone camera (12+ megapixels) are downsampled
  * to [MAX_DIMENSION] on load so the app never tries to hold an enormous
  * bitmap in memory - this is what keeps large-image OCR from crashing the
- * app with an OutOfMemoryError.
+ * app with an OutOfMemoryError. (The manifest also opts into a larger app
+ * heap as a safety net.)
  */
 object ImageUtils {
 
-    private const val MAX_DIMENSION = 2200
+    private const val MAX_DIMENSION = 2600
 
     /** Loads, downsamples and EXIF-rotates an image the user picked from the gallery. */
     fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap {
@@ -117,27 +117,39 @@ object ImageUtils {
         return result
     }
 
-    /** Crops [source] to [rect], clamped so it can never throw for an out-of-range rectangle. */
-    fun cropBitmap(source: Bitmap, rect: Rect): Bitmap {
-        val left = rect.left.coerceIn(0, source.width - 1)
-        val top = rect.top.coerceIn(0, source.height - 1)
-        val width = rect.width().coerceIn(1, source.width - left)
-        val height = rect.height().coerceIn(1, source.height - top)
-        return Bitmap.createBitmap(source, left, top, width, height)
-    }
-
+    /**
+     * Corrects a decoded bitmap using its EXIF orientation tag. Camera
+     * photos are frequently stored "sideways" (sensor orientation) with an
+     * EXIF tag describing how to display them correctly; a photo left in
+     * the wrong orientation looks fine to a human (phones auto-rotate the
+     * preview) but is disastrous for OCR, which expects roughly upright
+     * text. This handles all 8 possible EXIF orientation values, including
+     * the mirrored/transposed ones some camera apps use, not just the 3
+     * plain rotations.
+     */
     private fun applyExifRotation(bitmap: Bitmap, exif: ExifInterface): Bitmap {
         val orientation = exif.getAttributeInt(
             ExifInterface.TAG_ORIENTATION,
             ExifInterface.ORIENTATION_NORMAL
         )
-        val degrees = when (orientation) {
-            ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-            ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-            ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-            else -> 0f
+        val matrix = Matrix()
+        when (orientation) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.postScale(-1f, 1f)
+            ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.postScale(1f, -1f)
+            ExifInterface.ORIENTATION_TRANSPOSE -> {
+                matrix.postRotate(90f)
+                matrix.postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_TRANSVERSE -> {
+                matrix.postRotate(270f)
+                matrix.postScale(-1f, 1f)
+            }
+            else -> return bitmap
         }
-        return if (degrees == 0f) bitmap else rotateBitmap(bitmap, degrees)
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
     private fun ensureMaxDimension(bitmap: Bitmap, maxDim: Int): Bitmap {

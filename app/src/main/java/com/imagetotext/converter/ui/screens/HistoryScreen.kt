@@ -1,5 +1,6 @@
 package com.imagetotext.converter.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,6 +61,8 @@ fun HistoryScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var showClearAllConfirm by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = true) { onBack() }
 
     Scaffold(
         topBar = {
